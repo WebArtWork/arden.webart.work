@@ -27,6 +27,7 @@ export const SCENES: PanoramaScene[] = [
 	{ id: 'pano-9', title: 'Процедурна, пост' },
 	{ id: 'pano-10', title: 'Процедурна' },
 	{ id: 'pano-11', title: 'Коридор, диван' },
+	{ id: 'pano-12', title: 'Ігрова кімната' },
 ].map((scene) => ({
 	...scene,
 	src: `sphere/${scene.id}.webp`,
@@ -35,22 +36,23 @@ export const SCENES: PanoramaScene[] = [
 }));
 
 /**
- * Переходи між панорамами. Тимчасово: ланцюжок 1 → 2 → … → 11 (вперед 90°, назад 270°).
+ * Переходи між панорамами.
  * Налаштовується у режимі розміщення (/?edit): кнопка «Копіювати» віддає готовий код для вставки сюди.
  * Кожен перехід має бути двостороннім.
  */
 export const TOUR_LINKS: Record<string, SceneLink[]> = {
-	'pano-1': [{ to: 'pano-2', yaw: 90 }],
-	'pano-2': [{ to: 'pano-1', yaw: 270 }, { to: 'pano-3', yaw: 90 }],
-	'pano-3': [{ to: 'pano-2', yaw: 270 }, { to: 'pano-4', yaw: 90 }],
-	'pano-4': [{ to: 'pano-3', yaw: 270 }, { to: 'pano-5', yaw: 90 }],
-	'pano-5': [{ to: 'pano-4', yaw: 270 }, { to: 'pano-6', yaw: 90 }],
-	'pano-6': [{ to: 'pano-5', yaw: 270 }, { to: 'pano-7', yaw: 90 }],
-	'pano-7': [{ to: 'pano-6', yaw: 270 }, { to: 'pano-8', yaw: 90 }],
-	'pano-8': [{ to: 'pano-7', yaw: 270 }, { to: 'pano-9', yaw: 90 }],
-	'pano-9': [{ to: 'pano-8', yaw: 270 }, { to: 'pano-10', yaw: 90 }],
-	'pano-10': [{ to: 'pano-9', yaw: 270 }, { to: 'pano-11', yaw: 90 }],
-	'pano-11': [{ to: 'pano-10', yaw: 270 }],
+	'pano-1': [{ to: 'pano-2', yaw: 261 }],
+	'pano-2': [{ to: 'pano-1', yaw: 286 }, { to: 'pano-3', yaw: 19 }],
+	'pano-3': [{ to: 'pano-2', yaw: 198 }, { to: 'pano-4', yaw: 11 }],
+	'pano-4': [{ to: 'pano-3', yaw: 265 }, { to: 'pano-5', yaw: 176 }, { to: 'pano-8', yaw: 84 }],
+	'pano-5': [{ to: 'pano-4', yaw: 62 }, { to: 'pano-7', yaw: 200 }],
+	'pano-6': [{ to: 'pano-7', yaw: 151 }],
+	'pano-7': [{ to: 'pano-5', yaw: 197 }, { to: 'pano-6', yaw: 331 }],
+	'pano-8': [{ to: 'pano-4', yaw: 136 }, { to: 'pano-9', yaw: 228 }, { to: 'pano-11', yaw: 318 }],
+	'pano-9': [{ to: 'pano-6', yaw: 121 }, { to: 'pano-10', yaw: 19 }],
+	'pano-10': [{ to: 'pano-9', yaw: 243 }],
+	'pano-11': [{ to: 'pano-8', yaw: 112 }, { to: 'pano-12', yaw: 29 }],
+	'pano-12': [{ to: 'pano-11', yaw: 221 }],
 };
 
 /** Панорама — ціль кнопки «До виходу» (навігатор і автомаршрут) */
@@ -85,11 +87,4 @@ export type BottlePlacement = { product: string; yaw: number; pitch: number; sca
  * розміщення (/?edit): кнопка «Копіювати» віддає TOUR_LINKS і TOUR_BOTTLES для вставки сюди.
  * Збір рахується по товару (product), тому кожен товар має стояти в турі один раз.
  */
-export const TOUR_BOTTLES: Record<string, BottlePlacement[]> = {
-	'pano-5': [{ product: 'diamond-still-glass', yaw: 48, pitch: -23, scale: 1 }],
-	'pano-7': [{ product: 'arden-glass', yaw: 206, pitch: -28, scale: 1 }],
-	'pano-8': [{ product: 'diamond-light-glass', yaw: 46, pitch: -22, scale: 1 }],
-	'pano-9': [{ product: 'arden-can', yaw: 21, pitch: -21, scale: 1 }],
-	'pano-10': [{ product: 'diamond-light-can', yaw: 304, pitch: -23, scale: 1 }],
-	'pano-11': [{ product: 'diamond-sparkling-can', yaw: 131, pitch: -21, scale: 1 }],
-};
+export const TOUR_BOTTLES: Record<string, BottlePlacement[]> = {};
