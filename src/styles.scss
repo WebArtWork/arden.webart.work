@@ -1,0 +1,37 @@
+@use 'tailwindcss';
+@use './styles/theme';
+
+@theme {
+	--color-beige: #c9a45c;
+	--color-beige-light: #e0c78f;
+	--color-dark: #141414;
+	--color-dark-light: #2a2a2a;
+}
+
+html,
+body {
+	background: var(--c-bg-primary);
+	color: var(--c-text);
+	font-family: var(--ff-base);
+	font-size: var(--fs);
+	letter-spacing: var(--letter-spacing);
+}
+
+body {
+	min-height: 100vh;
+	background: var(--color-dark);
+	margin: 0;
+}
+
+.theme-interactive {
+	transition-duration: var(--motion-fast);
+	transition-property: background-color, border-color, box-shadow, color, opacity, transform;
+	transition-timing-function: var(--easing);
+}
+
+.theme-focus {
+	&:focus-visible {
+		outline: none;
+		box-shadow: var(--focus-ring);
+	}
+}

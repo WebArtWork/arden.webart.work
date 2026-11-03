@@ -1,0 +1,505 @@
+<section class="bg-dark">
+	<!-- Заголовок лише для SEO та скрінрідерів -->
+	<!-- Текст лише для пошукових систем та скрінрідерів: тур — це canvas. Рендериться при prerender -->
+	<div class="sr-only">
+		<h1>{{ introTitle() }}</h1>
+		<p>{{ introText() }}</p>
+		<h2>{{ listTitle() }}</h2>
+		<ul>
+			@for (label of sceneLabels; track $index) {
+				<li>{{ label() }}</li>
+			}
+		</ul>
+		<address>
+			<span>{{ addressText() }}</span>
+			<a [href]="phoneHref">{{ company.phone }}</a>
+		</address>
+	</div>
+
+	<div class="max-w-[1680px] mx-auto px-3 sm:px-4 py-3 sm:py-4 min-h-dvh flex flex-col justify-center">
+		<div
+			#viewerContainer
+			class="tour-shell flex flex-col gap-3 lg:grid lg:grid-cols-[9rem_minmax(0,1fr)_9rem] xl:grid-cols-[11rem_minmax(0,1fr)_11rem] lg:gap-4"
+		>
+			<!-- Scenes: left column (desktop) -->
+			<div class="tour-strip hidden lg:flex flex-col gap-3 overflow-y-auto">
+				@for (scene of scenes.slice(0, sideSplit); track scene.id; let i = $index) {
+					<ng-container *ngTemplateOutlet="thumb; context: { $implicit: scene, index: i }" />
+				}
+			</div>
+
+			<!-- 360° viewer -->
+			<div
+				class="tour-box relative rounded-2xl overflow-hidden bg-dark shadow-sm h-[68dvh] lg:h-[calc(100dvh-2rem)] min-h-[420px] select-none"
+			>
+				<div
+					#viewer
+					class="absolute inset-0 cursor-grab active:cursor-grabbing touch-none outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-beige"
+					tabindex="0"
+					role="application"
+					[attr.aria-label]="viewerLabel()"
+					(pointerdown)="onPointerDown($event)"
+					(pointermove)="onPointerMove($event)"
+					(pointerup)="onPointerUp($event)"
+					(pointercancel)="onPointerUp($event)"
+					(pointerleave)="onPointerLeave()"
+					(keydown)="onKeydown($event)"
+				></div>
+
+				<!-- Brand + current scene + route to the target scene -->
+				<div
+					class="absolute top-4 left-4 z-10 flex flex-wrap items-center gap-2 max-w-[calc(100%-5rem)] pointer-events-none"
+				>
+					<div class="w-full">
+						<img
+							[src]="logo"
+							[alt]="companyName"
+							width="2140"
+							height="992"
+							class="h-10 sm:h-12 w-auto rounded-xl bg-dark/60 backdrop-blur-sm px-3 py-1.5"
+						/>
+					</div>
+					<div
+						class="flex items-center gap-2 rounded-full bg-dark/60 backdrop-blur-sm px-4 py-2 text-white text-sm"
+						aria-live="polite"
+					>
+						<span class="font-semibold" [translate]="scenes[activeIndex()].title"></span>
+						<span class="text-gray-400">{{ activeIndex() + 1 }} / {{ scenes.length }}</span>
+					</div>
+					@if (!editMode) {
+						<div
+							class="pointer-events-auto flex items-center gap-2 rounded-full px-3 py-2 text-white text-sm font-semibold backdrop-blur-sm transition-colors"
+							[class]="allCollected() ? 'bg-green-600' : 'bg-dark/60'"
+							role="status"
+							[attr.aria-label]="'Зібрано пляшок Panacea: ' + collectedCount() + ' з ' + bottleTotal()"
+							title="Знайдіть і зберіть усі пляшки Panacea в панорамах"
+						>
+							<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+								<path stroke-linecap="round" stroke-linejoin="round" d="M10 2h4v3l1.5 2.5V21a1 1 0 01-1 1h-5a1 1 0 01-1-1V7.5L10 5V2z" />
+							</svg>
+							<span class="hidden sm:inline">Пляшки</span>
+							<span class="font-mono">{{ collectedCount() }}/{{ bottleTotal() }}</span>
+							@if (allCollected()) {
+								<button
+									type="button"
+									(click)="resetBottles()"
+									class="-mr-1 w-6 h-6 rounded-full hover:bg-black/20 transition-colors"
+									aria-label="Почати збір заново"
+									title="Почати збір заново"
+								>
+									↺
+								</button>
+							}
+						</div>
+					}
+					@if (!editMode && (guiding() || navigating() || scenes[activeIndex()].id !== guideTarget)) {
+						<!-- Label = navigator (green arrows), play = automatic route -->
+						<div
+							class="pointer-events-auto flex items-stretch rounded-full overflow-hidden text-sm font-semibold transition-colors"
+							[class]="navigating() ? 'bg-green-600 text-white' : 'bg-beige text-dark'"
+						>
+							<button
+								type="button"
+								(click)="toggleNavigator()"
+								class="flex items-center gap-2 pl-4 pr-3 py-2 transition-colors hover:bg-black/10"
+								[attr.aria-pressed]="navigating()"
+							>
+								<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										d="M12 21s-7-6.2-7-11.5a7 7 0 0114 0C19 14.8 12 21 12 21z"
+									/>
+									<circle cx="12" cy="9.5" r="2.5" />
+								</svg>
+								<span translate="До виходу"></span>
+							</button>
+							<span class="w-px my-2 bg-current opacity-25"></span>
+							<button
+								type="button"
+								(click)="startGuide()"
+								class="flex items-center justify-center w-10 transition-colors hover:bg-black/10"
+								[attr.aria-label]="guiding() ? guideStopLabel() : guidePlayLabel()"
+								[attr.title]="guiding() ? guideStopLabel() : guidePlayLabel()"
+								[attr.aria-pressed]="guiding()"
+							>
+								@if (guiding()) {
+									<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+										<rect x="6" y="6" width="12" height="12" rx="2" />
+									</svg>
+								} @else {
+									<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+										<path d="M8 5.5v13a1 1 0 001.5.86l10.5-6.5a1 1 0 000-1.72L9.5 4.64A1 1 0 008 5.5z" />
+									</svg>
+								}
+							</button>
+						</div>
+					}
+				</div>
+
+				<!-- Zoom + fullscreen -->
+				<div class="absolute top-4 right-4 z-10 flex flex-col gap-2">
+					<button
+						type="button"
+						(click)="toggleHq()"
+						class="w-10 h-10 flex items-center justify-center rounded-full text-white text-xs font-bold transition-colors backdrop-blur-sm"
+						[class]="hq() ? 'bg-green-600 hover:bg-green-700' : 'bg-dark/60 hover:bg-dark/80'"
+						[attr.aria-pressed]="hq()"
+						[attr.aria-label]="hqLabel()"
+						[attr.title]="hqLabel()"
+					>
+						HQ
+					</button>
+					@if (canFullscreen()) {
+						<button
+							type="button"
+							(click)="toggleFullscreen()"
+							class="w-10 h-10 flex items-center justify-center rounded-full bg-dark/60 hover:bg-dark/80 text-white transition-colors backdrop-blur-sm"
+							[attr.aria-label]="isFullscreen() ? exitFullscreenLabel() : enterFullscreenLabel()"
+						>
+							@if (!isFullscreen()) {
+								<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"
+									/>
+								</svg>
+							} @else {
+								<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										d="M9 3v4a1 1 0 01-1 1H4M20 8h-4a1 1 0 01-1-1V3m1 14h4M3 16h4a1 1 0 011 1v4m6-5h4a1 1 0 011 1v4"
+									/>
+								</svg>
+							}
+						</button>
+					}
+					<div class="flex flex-col rounded-full bg-dark/60 backdrop-blur-sm overflow-hidden">
+						<button
+							type="button"
+							(click)="zoom(-10)"
+							class="w-10 h-10 flex items-center justify-center text-white hover:bg-dark/40 transition-colors"
+							[attr.aria-label]="zoomInLabel()"
+						>
+							<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14M5 12h14" />
+							</svg>
+						</button>
+						<span class="mx-2 h-px bg-white/20"></span>
+						<button
+							type="button"
+							(click)="zoom(10)"
+							class="w-10 h-10 flex items-center justify-center text-white hover:bg-dark/40 transition-colors"
+							[attr.aria-label]="zoomOutLabel()"
+						>
+							<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14" />
+							</svg>
+						</button>
+					</div>
+				</div>
+
+				<!-- Collected bottle -->
+				@if (toast(); as t) {
+					<div
+						class="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3 max-w-[calc(100%-2rem)] rounded-full bg-dark/85 backdrop-blur-sm pl-4 pr-2 py-2 text-white text-sm"
+						role="status"
+					>
+						<span class="truncate">
+							@if (t.count >= t.total) {
+								Ви зібрали всі пляшки! 🎉
+							} @else {
+								Зібрано {{ t.count }}/{{ t.total }}
+							}
+							· {{ t.title }}
+						</span>
+						<a
+							[href]="t.url"
+							target="_blank"
+							rel="noopener"
+							class="shrink-0 rounded-full bg-beige px-3 py-1 font-semibold text-dark hover:bg-beige-light transition-colors"
+						>
+							В магазин
+						</a>
+					</div>
+				}
+
+				<!-- Arrow tooltip -->
+				@if (hoveredArrow(); as arrow) {
+					<div
+						class="absolute z-10 -translate-x-1/2 -translate-y-full -mt-3 rounded-full bg-dark/80 backdrop-blur-sm px-3 py-1 text-white text-xs font-semibold whitespace-nowrap pointer-events-none"
+						[style.left.px]="arrow.x"
+						[style.top.px]="arrow.y - 12"
+						[translate]="arrow.title"
+					></div>
+				}
+
+				<!-- Loading / error / hints -->
+				@if (loading()) {
+					<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+						<div class="w-10 h-10 border-4 border-beige/30 border-t-beige rounded-full animate-spin"></div>
+					</div>
+				} @else if (loadError()) {
+					<div class="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6 text-center">
+						<p class="text-red-400">{{ loadErrorLabel() }}</p>
+						<button
+							type="button"
+							(click)="selectScene(activeIndex())"
+							class="px-4 py-2 rounded-full text-sm font-semibold bg-beige text-dark hover:bg-beige-light transition-colors"
+							translate="Спробувати ще раз"
+						></button>
+					</div>
+				} @else if (!interacted() && !editMode) {
+					<div
+						class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2 rounded-full bg-dark/60 backdrop-blur-sm px-4 py-2 text-white text-sm pointer-events-none"
+					>
+						<svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								d="M7 11V6.5a1.5 1.5 0 013 0V11m0-1.5v-3a1.5 1.5 0 013 0v3m0 0V9a1.5 1.5 0 013 0v4.5a6 6 0 01-6 6h-1a6 6 0 01-5.2-3L5 13.5a1.5 1.5 0 012.6-1.5L9 14"
+							/>
+						</svg>
+						<span translate="Перетягніть, щоб роззирнутися"></span>
+					</div>
+				}
+				@if (ctrlHint()) {
+					<div
+						class="absolute inset-0 flex items-center justify-center bg-dark/40 pointer-events-none text-white text-sm sm:text-base font-semibold px-6 text-center"
+						translate="Утримуйте Ctrl і прокручуйте, щоб наблизити"
+					></div>
+				}
+
+				<!-- Placement mode (?edit): dev-only, nothing is saved, output goes to the console -->
+				@if (editMode) {
+					<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+						<svg class="w-10 h-10 text-white drop-shadow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+							<path stroke-linecap="round" d="M12 2v7m0 6v7M2 12h7m6 0h7" />
+						</svg>
+					</div>
+					<div
+						class="absolute bottom-4 left-4 z-10 w-80 max-w-[calc(100%-2rem)] max-h-[calc(100%-6rem)] overflow-y-auto rounded-xl bg-dark/85 backdrop-blur-sm p-4 text-white text-sm space-y-3"
+					>
+						<div class="flex items-center justify-between gap-2">
+							<span class="font-semibold">Режим розміщення</span>
+							<span class="flex items-center gap-2">
+								<span class="font-mono text-beige">{{ currentYaw() }}°</span>
+								<button
+									type="button"
+									(click)="editPanelOpen.set(!editPanelOpen())"
+									class="w-6 h-6 rounded-full hover:bg-white/10 transition-colors"
+									[attr.aria-expanded]="editPanelOpen()"
+									[attr.aria-label]="editPanelOpen() ? 'Згорнути панель' : 'Розгорнути панель'"
+									[attr.title]="editPanelOpen() ? 'Згорнути панель' : 'Розгорнути панель'"
+								>
+									{{ editPanelOpen() ? '−' : '+' }}
+								</button>
+							</span>
+						</div>
+						@if (editPanelOpen()) {
+						<div class="flex gap-2">
+							<select
+								class="flex-1 min-w-0 rounded-lg bg-dark-light px-2 py-1.5 text-white"
+								[value]="editTarget()"
+								(change)="editTarget.set($any($event.target).value)"
+							>
+								<option value="">— куди веде —</option>
+								@for (scene of scenes; track scene.id; let i = $index) {
+									@if (i !== activeIndex()) {
+										<option [value]="scene.id">{{ scene.title }}</option>
+									}
+								}
+							</select>
+							<button
+								type="button"
+								(click)="addLink()"
+								[disabled]="!editTarget()"
+								class="shrink-0 rounded-lg bg-beige px-3 py-1.5 font-semibold text-dark disabled:opacity-40"
+							>
+								Додати стрілку
+							</button>
+						</div>
+						@if (currentLinks().length) {
+							<ul class="space-y-1">
+								@for (link of currentLinks(); track link.to) {
+									<li class="flex items-center justify-between gap-2">
+										<span class="truncate">→ {{ sceneTitle(link.to) }}</span>
+										<span class="flex items-center gap-2 shrink-0">
+											<span class="font-mono text-gray-400">{{ link.yaw }}°</span>
+											<button
+												type="button"
+												(click)="removeLink(link.to)"
+												class="w-6 h-6 rounded-full hover:bg-white/10"
+												aria-label="Видалити стрілку"
+											>
+												×
+											</button>
+										</span>
+									</li>
+								}
+							</ul>
+						}
+						<div class="border-t border-white/10 pt-3 space-y-2">
+							<div class="flex items-center justify-between">
+								<span class="font-semibold">Пляшки Panacea</span>
+								<button
+									type="button"
+									(click)="resetBottles()"
+									class="rounded-md bg-white/10 hover:bg-white/20 px-2 py-0.5 text-xs transition-colors"
+									title="Повернути всі зібрані пляшки (localStorage)"
+								>
+									скинути збір ({{ collectedCount() }}/{{ bottleTotal() }})
+								</button>
+							</div>
+							<div class="flex gap-2">
+								<select
+									class="flex-1 min-w-0 rounded-lg bg-dark-light px-2 py-1.5 text-white"
+									[value]="bottleProduct()"
+									(change)="bottleProduct.set($any($event.target).value)"
+								>
+									@for (product of bottleProducts; track product.id) {
+										<option [value]="product.id">{{ product.title }}</option>
+									}
+								</select>
+								<button
+									type="button"
+									(click)="addBottle()"
+									class="shrink-0 rounded-lg bg-beige px-3 py-1.5 font-semibold text-dark"
+								>
+									Поставити
+								</button>
+								<button
+									type="button"
+									(click)="randomBottles()"
+									class="shrink-0 rounded-lg bg-white/10 hover:bg-white/20 px-2.5 py-1.5 transition-colors"
+									title="Розкинути 3 випадкові пляшки"
+									aria-label="Розкинути 3 випадкові пляшки"
+								>
+									🎲
+								</button>
+							</div>
+							@if (currentBottles().length) {
+								<ul class="space-y-2">
+									@for (bottle of currentBottles(); track $index; let i = $index) {
+										<li
+											class="rounded-lg p-2 space-y-1.5"
+											[class]="selectedBottle() === i ? 'bg-beige/20 ring-1 ring-beige' : 'bg-white/5'"
+										>
+											<div class="flex items-center justify-between gap-2">
+												<button
+													type="button"
+													(click)="selectBottle(i)"
+													class="flex-1 min-w-0 truncate text-left"
+												>
+													{{ productTitle(bottle.product) }}
+												</button>
+												<span class="font-mono text-xs text-gray-400 shrink-0">
+													{{ bottle.yaw }}° / {{ bottle.pitch }}°
+												</span>
+												<button
+													type="button"
+													(click)="removeBottle(i)"
+													class="w-6 h-6 rounded-full hover:bg-white/10 shrink-0"
+													aria-label="Видалити пляшку"
+												>
+													×
+												</button>
+											</div>
+											<div class="flex items-center gap-2">
+												<input
+													type="range"
+													min="0.3"
+													max="3"
+													step="0.05"
+													class="flex-1 min-w-0 accent-[#c9a45c]"
+													[value]="bottle.scale"
+													(input)="setBottleScale(i, +$any($event.target).value)"
+													aria-label="Розмір пляшки"
+												/>
+												<span class="font-mono text-xs text-gray-400 w-9 text-right">{{ bottle.scale }}×</span>
+												<button
+													type="button"
+													(click)="moveBottleHere(i)"
+													class="shrink-0 rounded-md bg-white/10 hover:bg-white/20 px-2 py-0.5 text-xs transition-colors"
+													title="Перенести в центр кадру (+)"
+												>
+													сюди
+												</button>
+											</div>
+										</li>
+									}
+								</ul>
+							}
+						</div>
+						<button
+								type="button"
+								(click)="copyLinks()"
+								class="w-full rounded-lg bg-white/10 hover:bg-white/20 px-3 py-1.5 font-semibold transition-colors"
+							>
+								{{ copied() ? 'Скопійовано ✓' : 'Копіювати TOUR_LINKS + TOUR_BOTTLES' }}
+							</button>
+							<p class="text-xs text-gray-400">
+							Наведіть + на прохід і додайте стрілку. Пляшки: «Поставити» в центр кадру, потім перетягніть мишкою (або «сюди»). Нічого не зберігається — натисніть «Копіювати» і вставте в tour.data.ts.
+						</p>
+						}
+					</div>
+				}
+			</div>
+
+			<!-- Scenes: right column (desktop) -->
+			<div class="tour-strip hidden lg:flex flex-col gap-3 overflow-y-auto">
+				@for (scene of scenes.slice(sideSplit); track scene.id; let i = $index) {
+					<ng-container
+						*ngTemplateOutlet="thumb; context: { $implicit: scene, index: i + sideSplit }"
+					/>
+				}
+			</div>
+
+			<!-- Scenes: strip below the viewer (mobile / tablet) -->
+			<div class="tour-strip flex lg:hidden gap-2 overflow-x-auto snap-x">
+				@for (scene of scenes; track scene.id; let i = $index) {
+					<ng-container *ngTemplateOutlet="thumb; context: { $implicit: scene, index: i }" />
+				}
+			</div>
+		</div>
+	</div>
+</section>
+
+<ng-template #thumb let-scene let-i="index">
+	<button
+		type="button"
+		(click)="stopGuide(); selectScene(i)"
+		class="group shrink-0 snap-center w-28 sm:w-36 lg:w-full text-left"
+		[attr.data-scene]="i"
+		[attr.aria-current]="i === activeIndex() ? 'true' : null"
+	>
+		<span
+			class="block aspect-video rounded-lg overflow-hidden ring-2 transition-all"
+			[class]="
+				i === activeIndex()
+					? 'ring-beige'
+					: 'ring-transparent opacity-70 group-hover:opacity-100'
+			"
+		>
+			<img
+				[src]="scene.thumb"
+				[translate]="{ alt: scene.title }"
+				width="320"
+				height="180"
+				loading="lazy"
+				class="w-full h-full object-cover"
+			/>
+		</span>
+		<span
+			class="block mt-1 text-xs truncate"
+			[class]="
+				i === activeIndex()
+					? 'text-white font-semibold'
+					: 'text-gray-400'
+			"
+			[translate]="scene.title"
+		></span>
+	</button>
+</ng-template>

@@ -1,0 +1,43 @@
+{
+	"_id": "",
+	"name": "Arden Palace",
+	"title": "Arden Palace — Medical Resort & SPA",
+	"description": "Arden Palace — медичний курорт і SPA у Сатанові, Подільська Швейцарія. Діагностика, лікування, мінеральна вода, SPA-центр і комфортне проживання.",
+	"image": "/arden-virtual-tour-social.jpg",
+	"logo": "/logo.png",
+	"siteUrl": "https://arden.webart.work",
+	"lang": "uk",
+	"locale": "uk_UA",
+	"phone": "0 800 50 50 88",
+	"address": "смт. Сатанів, вул. Курортна, 40, Хмельницька обл., Україна",
+	"defaultSeo": {
+		"title": "Віртуальний тур Arden Palace — Medical Resort & SPA",
+		"description": "Інтерактивний 360° віртуальний тур медичним курортом Arden Palace у Сатанові: проживання, SPA та зони відпочинку.",
+		"keywords": [
+			"Arden Palace",
+			"віртуальний тур",
+			"Сатанів",
+			"санаторій",
+			"медичний курорт",
+			"SPA"
+		],
+		"author": "Arden Palace",
+		"image": "/arden-virtual-tour-social.jpg"
+	},
+	"structuredData": {
+		"type": "Resort",
+		"addressLocality": "Сатанів",
+		"addressCountry": "UA",
+		"sameAs": [
+			"https://www.facebook.com/ardenpalacemedicalresort",
+			"https://www.instagram.com/arden_palace",
+			"https://t.me/arden_palace",
+			"https://arden-palace.com/"
+		],
+		"custom": {
+			"streetAddress": "вул. Курортна, 40",
+			"addressRegion": "Хмельницька область",
+			"postalCode": ""
+		}
+	}
+}
