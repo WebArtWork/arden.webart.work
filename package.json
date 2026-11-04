@@ -9,41 +9,41 @@
     "bottles": "node tools/bottles/build.mjs"
   },
   "dependencies": {
-    "@angular/common": "22.2.1",
-    "@angular/compiler": "22.2.1",
-    "@angular/core": "22.2.1",
-    "@angular/forms": "22.2.1",
-    "@angular/platform-browser": "22.2.1",
-    "@angular/platform-server": "22.2.1",
-    "@angular/router": "22.2.1",
-    "@angular/ssr": "22.2.2",
-    "@wawjs/ngx-core": "22.0.9",
+    "@angular/common": "22.2.4",
+    "@angular/compiler": "22.2.4",
+    "@angular/core": "22.2.4",
+    "@angular/forms": "22.2.4",
+    "@angular/platform-browser": "22.2.4",
+    "@angular/platform-server": "22.2.4",
+    "@angular/router": "22.2.4",
+    "@angular/ssr": "22.2.5",
+    "@wawjs/ngx-core": "22.0.11",
     "@wawjs/ngx-default": "22.0.3",
-    "@wawjs/ngx-translate": "22.0.9",
-    "@wawjs/ngx-ui": "22.0.9",
-    "express": "5.1.0",
-    "rxjs": "7.8.0",
-    "three": "^0.186.1",
-    "tslib": "2.3.0"
+    "@wawjs/ngx-translate": "22.0.11",
+    "@wawjs/ngx-ui": "22.0.11",
+    "express": "5.3.0",
+    "rxjs": "7.8.2",
+    "three": "0.187.0",
+    "tslib": "2.9.1"
   },
   "devDependencies": {
-    "@angular/build": "22.2.2",
-    "@angular/cli": "22.2.2",
-    "@angular/compiler-cli": "22.2.1",
-    "@tailwindcss/postcss": "4.1.12",
-    "@types/express": "5.0.1",
+    "@angular/build": "22.2.5",
+    "@angular/cli": "22.2.5",
+    "@angular/compiler-cli": "22.2.4",
+    "@tailwindcss/postcss": "4.3.4",
+    "@types/express": "5.0.6",
     "@types/node": "25.9.3",
-    "@types/three": "^0.186.0",
-    "ng-packagr": "22.2.4",
-    "postcss": "8.5.26",
-    "prettier": "3.8.1",
+    "@types/three": "0.187.0",
+    "ng-packagr": "22.2.6",
+    "postcss": "8.5.32",
+    "prettier": "3.9.10",
     "sharp": "^0.35.5",
-    "tailwindcss": "4.1.12",
+    "tailwindcss": "4.3.4",
     "typescript": "6.0.3",
-    "vitest": "5.0.3"
+    "vitest": "5.1.0"
   },
   "overrides": {
     "esbuild": "0.28.2",
-    "@hono/node-server": "2.1.4"
+    "@hono/node-server": "2.1.6"
   }
 }
